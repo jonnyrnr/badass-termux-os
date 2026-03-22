@@ -47,7 +47,7 @@ with t5:
     st.header("Wireless Warfare (Aircrack-ng)")
     interface = st.text_input("Wireless Interface", "wlan0mon")
     if st.button("📡 Monitor Mode On"):
-        os.system(f"sudo airmon-ng start {interface}")
+        os.system(f"airmon-ng start {interface}")
         st.success(f"{interface} enabled in Monitor Mode.")
     if st.button("🕵️ Scan for APs"):
         st.info("Starting airodump-ng... output will save to capture.csv")
