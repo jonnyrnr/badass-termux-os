@@ -1,32 +1,32 @@
 import streamlit as st
-import psutil, os
-from datetime import datetime
+import pandas as pd
+import subprocess
+import psutil
 
-st.set_page_config(page_title="NEON COMMAND", layout="wide")
-st.title("⚡ NEON COMMAND: PHOENIX NODE")
+st.set_page_config(page_title="KALI GUI: PHOENIX", layout="wide")
+st.title("🛡️ KALI RECON DASHBOARD")
 
-# --- WORK LOG ---
-st.header("📋 Stagehand Work Log")
-c1, c2 = st.columns(2)
-with c1:
-    if st.button("🚀 CLOCK IN"):
-        with open("work_log.txt", "a") as f:
-            f.write(f"IN:  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        st.success("Clocked In!")
-with c2:
-    if st.button("🛑 CLOCK OUT"):
-        with open("work_log.txt", "a") as f:
-            f.write(f"OUT: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        st.warning("Clocked Out!")
+# --- SIDEBAR: SYSTEM VITALS ---
+st.sidebar.header("📡 Node Status")
+st.sidebar.metric("CPU", f"{psutil.cpu_percent()}%")
+st.sidebar.metric("RAM", f"{psutil.virtual_memory().percent}%")
 
-if st.checkbox("View History"):
-    if os.path.exists("work_log.txt"):
-        st.text(open("work_log.txt").read())
+# --- MAIN: NETWORK RECON ---
+st.header("🔍 Network Discovery")
+target = st.text_input("Target Range (e.g., 192.168.1.0/24)", "127.0.0.1")
 
-# --- STATUS ---
+if st.button("🚀 Run Nmap Scan"):
+    with st.spinner("Scanning..."):
+        # Run a quick service discovery scan
+        cmd = ["nmap", "-sV", "-T4", target]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        st.subheader("Scan Results")
+        st.code(result.stdout)
+
+# --- SNIFFER TAB ---
 st.divider()
-st.sidebar.header("🛠️ STATUS")
-bat = psutil.sensors_battery()
-st.sidebar.write(f"Battery: {bat.percentage}%" if bat else "On AC")
-if st.sidebar.button("🔦 TOGGLE LIGHT"):
-    os.system("termux-torch on")
+if st.checkbox("📡 Show Active Connections"):
+    connections = psutil.net_connections()
+    df = pd.DataFrame([{"fd": c.fd, "family": c.family, "type": c.type, "status": c.status} for c in connections])
+    st.table(df.head(10))
