@@ -1,50 +1,51 @@
 import streamlit as st
 import pandas as pd
 import subprocess
-import psutil
 import os
 
-st.set_page_config(page_title="KALI GUI: PHOENIX", layout="wide")
-st.title("🛡️ KALI OFFENSIVE DASHBOARD")
+st.set_page_config(page_title="KALI OMNI-HUB", layout="wide")
+st.title("💀 KALI OMNI-HUB: ALL-IN-ONE")
 
-# --- SIDEBAR: SYSTEM VITALS ---
-st.sidebar.header("📡 Node Status")
-st.sidebar.metric("CPU", f"{psutil.cpu_percent()}%")
-if st.sidebar.button("💀 SHUTDOWN HUB"):
-    os._exit(0)
+# --- SIDEBAR: OSINT & QUICK LOOKUP ---
+st.sidebar.header("🔍 OSINT Quick-Tools")
+ip_lookup = st.sidebar.text_input("IP/Domain Lookup")
+if st.sidebar.button("Whois"):
+    res = subprocess.run(["whois", ip_lookup], capture_output=True, text=True)
+    st.sidebar.code(res.stdout)
 
-# --- TABBED INTERFACE ---
-tab1, tab2 = st.tabs(["🔍 Network Recon", "🔓 Password Cracking"])
+# --- TABBED INTERFACE (The Kitchen Sink) ---
+t1, t2, t3, t4 = st.tabs(["📡 Recon", "🌐 Web Audit", "🔓 Cracking", "💣 Exploits"])
 
-with tab1:
-    st.header("Network Discovery")
+with t1:
+    st.header("Nmap Network Mapping")
     target = st.text_input("Target Range", "192.168.1.0/24")
-    if st.button("🚀 Run Nmap Scan"):
+    mode = st.selectbox("Scan Intensity", ["-sn (Ping Sweep)", "-sV (Service Scan)", "-A (Aggressive)"])
+    if st.button("🚀 Execute Nmap"):
         with st.spinner("Scanning..."):
-            result = subprocess.run(["nmap", "-sV", "-T4", target], capture_output=True, text=True)
-            st.code(result.stdout)
+            res = subprocess.run(["nmap", mode, target], capture_output=True, text=True)
+            st.code(res.stdout)
 
-with tab2:
-    st.header("John the Ripper Interface")
-    hash_file = st.file_uploader("Upload Hash File (.txt)", type="txt")
-    wordlist = st.text_input("Wordlist Path", "/usr/share/wordlists/rockyou.txt")
-    
-    if hash_file and st.button("🔥 Start Cracking"):
-        with open("temp_hash.txt", "wb") as f:
-            f.write(hash_file.getbuffer())
-        
-        st.info("Cracking in progress... check 'Show Status' for updates.")
-        # Start John in the background
+with t2:
+    st.header("Nikto Web Vulnerability Scanner")
+    web_target = st.text_input("URL (e.g., http://1.1.1.1)")
+    if st.button("🔍 Audit Web Server"):
+        with st.spinner("Running Nikto..."):
+            res = subprocess.run(["nikto", "-h", web_target], capture_output=True, text=True)
+            st.code(res.stdout)
+
+with t3:
+    st.header("John the Ripper")
+    wordlist = st.text_input("Wordlist", "/usr/share/wordlists/rockyou.txt")
+    if st.button("🔥 Start Cracker"):
+        st.info("Cracking process spawned in background.")
         subprocess.Popen(["john", "--wordlist=" + wordlist, "temp_hash.txt"])
 
-    if st.button("📊 Show Cracking Status"):
-        status = subprocess.run(["john", "--show", "temp_hash.txt"], capture_output=True, text=True)
-        st.success("Cracked Passwords:")
-        st.code(status.stdout if status.stdout else "No passwords cracked yet.")
+with t4:
+    st.header("Searchsploit (Exploit-DB)")
+    query = st.text_input("Search Vulnerability (e.g., 'Apache 2.4')")
+    if st.button("🔎 Find Exploit"):
+        res = subprocess.run(["searchsploit", query], capture_output=True, text=True)
+        st.code(res.stdout)
 
-# --- LIVE SNIFFER ---
 st.divider()
-if st.checkbox("📡 Show Active Connections"):
-    connections = psutil.net_connections()
-    df = pd.DataFrame([{"fd": c.fd, "family": c.family, "status": c.status} for c in connections])
-    st.table(df.head(10))
+st.caption("PHOENIX NODE | ENCRYPTED LINK ACTIVE")
