@@ -3,49 +3,52 @@ import pandas as pd
 import subprocess
 import os
 
-st.set_page_config(page_title="KALI OMNI-HUB", layout="wide")
-st.title("💀 KALI OMNI-HUB: ALL-IN-ONE")
+st.set_page_config(page_title="KALI OMNI-HUB: GOD MODE", layout="wide")
+st.title("💀 KALI OMNI-HUB: TOTAL COMMAND")
 
-# --- SIDEBAR: OSINT & QUICK LOOKUP ---
-st.sidebar.header("🔍 OSINT Quick-Tools")
+# --- SIDEBAR: SYSTEM & OSINT ---
+st.sidebar.header("🔍 OSINT & System")
 ip_lookup = st.sidebar.text_input("IP/Domain Lookup")
 if st.sidebar.button("Whois"):
     res = subprocess.run(["whois", ip_lookup], capture_output=True, text=True)
     st.sidebar.code(res.stdout)
 
-# --- TABBED INTERFACE (The Kitchen Sink) ---
-t1, t2, t3, t4 = st.tabs(["📡 Recon", "🌐 Web Audit", "🔓 Cracking", "💣 Exploits"])
+# --- THE KITCHEN SINK TABS ---
+t1, t2, t3, t4, t5 = st.tabs(["📡 Recon", "🌐 Web Audit", "🔓 Cracking", "💣 Exploits", "📶 Wireless"])
 
 with t1:
     st.header("Nmap Network Mapping")
     target = st.text_input("Target Range", "192.168.1.0/24")
-    mode = st.selectbox("Scan Intensity", ["-sn (Ping Sweep)", "-sV (Service Scan)", "-A (Aggressive)"])
     if st.button("🚀 Execute Nmap"):
-        with st.spinner("Scanning..."):
-            res = subprocess.run(["nmap", mode, target], capture_output=True, text=True)
-            st.code(res.stdout)
+        res = subprocess.run(["nmap", "-A", target], capture_output=True, text=True)
+        st.code(res.stdout)
 
 with t2:
-    st.header("Nikto Web Vulnerability Scanner")
-    web_target = st.text_input("URL (e.g., http://1.1.1.1)")
-    if st.button("🔍 Audit Web Server"):
-        with st.spinner("Running Nikto..."):
-            res = subprocess.run(["nikto", "-h", web_target], capture_output=True, text=True)
-            st.code(res.stdout)
+    st.header("Nikto Web Audit")
+    web_target = st.text_input("URL", "http://127.0.0.1")
+    if st.button("🔍 Run Nikto"):
+        res = subprocess.run(["nikto", "-h", web_target], capture_output=True, text=True)
+        st.code(res.stdout)
 
 with t3:
     st.header("John the Ripper")
-    wordlist = st.text_input("Wordlist", "/usr/share/wordlists/rockyou.txt")
-    if st.button("🔥 Start Cracker"):
-        st.info("Cracking process spawned in background.")
-        subprocess.Popen(["john", "--wordlist=" + wordlist, "temp_hash.txt"])
+    if st.button("📊 Show Cracked"):
+        res = subprocess.run(["john", "--show", "temp_hash.txt"], capture_output=True, text=True)
+        st.code(res.stdout)
 
 with t4:
-    st.header("Searchsploit (Exploit-DB)")
-    query = st.text_input("Search Vulnerability (e.g., 'Apache 2.4')")
-    if st.button("🔎 Find Exploit"):
+    st.header("Searchsploit")
+    query = st.text_input("Search Exploit-DB")
+    if st.button("🔎 Find"):
         res = subprocess.run(["searchsploit", query], capture_output=True, text=True)
         st.code(res.stdout)
 
-st.divider()
-st.caption("PHOENIX NODE | ENCRYPTED LINK ACTIVE")
+with t5:
+    st.header("Wireless Warfare (Aircrack-ng)")
+    interface = st.text_input("Wireless Interface", "wlan0mon")
+    if st.button("📡 Monitor Mode On"):
+        os.system(f"sudo airmon-ng start {interface}")
+        st.success(f"{interface} enabled in Monitor Mode.")
+    if st.button("🕵️ Scan for APs"):
+        st.info("Starting airodump-ng... output will save to capture.csv")
+        subprocess.Popen(["sudo", "airodump-ng", "-w", "capture", "--output-format", "csv", interface])
